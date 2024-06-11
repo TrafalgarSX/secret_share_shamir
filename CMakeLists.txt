@@ -53,6 +53,8 @@ list(APPEND EXTRA_INCLUDE
 
 list(APPEND EXTRA_SRC "${PROJECT_SOURCE_DIR}/src/shamir.cpp")
 
+option(DLL "build dll" ON)
+
 #link lib 后面应该完善，操作系统和编译器组合判断
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   message("windows")
@@ -77,7 +79,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(VCPKG_FEATURE_FLAGS "versions")
 
     # 第三方库的头文件（vcpkg安装的）
-    list(APPEND EXTRA_INCLUDE "${CMAKE_PREFIX_PATH}/include")
+    if(DLL)
+        list(APPEND EXTRA_INCLUDE "${CMAKE_PREFIX_PATH}/include")
+    else()
+        list(APPEND EXTRA_INCLUDE "${CMAKE_PREFIX_PATH}-static/include")
+    endif()
+
     # 第三方库的路径（vcpkg安装的）
     # list(APPEND EXTRA_LIB_PATH "${CMAKE_PREFIX_PATH}/$<$<CONFIG:Debug>:debug/>bin")
     # 区分debug和release, 多配置编译器不能直接使用CMAKE_BUILD_TYPE
@@ -92,11 +99,15 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
     # 动态库
     find_package(fmt CONFIG REQUIRED)
-    #  gmp
-    find_package(PkgConfig REQUIRED)
 
-    pkg_check_modules(gmp REQUIRED IMPORTED_TARGET gmp)
-    list(APPEND EXTRA_LIB fmt::fmt PkgConfig::gmp)
+    if(DLL)
+        #  gmp
+        # find_package(PkgConfig REQUIRED)
+        # pkg_check_modules(gmp REQUIRED IMPORTED_TARGET gmp)
+        list(APPEND EXTRA_LIB fmt::fmt  "${CMAKE_PREFIX_PATH}/$<$<CONFIG:Debug>:debug/>lib/gmp.lib")
+    else()
+        list(APPEND EXTRA_LIB fmt::fmt mpir)
+    endif()
 
     list(APPEND EXTRA_SRC "${PROJECT_SOURCE_DIR}/src/rand_win.c")
   endif()
