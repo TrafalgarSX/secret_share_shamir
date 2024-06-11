@@ -295,6 +295,7 @@ int restore_secret(mpz_t *poly, int n, int degree, mpz_t** AA, mpz_t b[]) {
   return 0;
 }
 
+// secret 只可以是16进制字符串
 int split(int opt_threshold, int opt_number, const std::string &secret, std::vector<std::string> &shares) {
   unsigned int fmt_len;
   mpz_t y;
